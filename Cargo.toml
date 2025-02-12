@@ -1,7 +1,7 @@
 [package]
 name = "blog"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [[bin]]
 name = "blog"
@@ -17,3 +17,5 @@ tokio = { version = "1.28.0", features = ["macros", "rt-multi-thread"] }
 axum = "0.8.1"
 sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "postgres", "macros", "time"] }
 tower-http = { version = "0.6.2", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

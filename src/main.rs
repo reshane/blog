@@ -8,6 +8,10 @@ use axum::{
 };
 use sqlx::{FromRow, postgres::PgPoolOptions, types::time::Date};
 use std::sync::Arc;
+use tracing::info;
+use tracing_subscriber::fmt::{Layer, format::FmtSpan};
+use tracing_subscriber::prelude::*;
+use tracing_subscriber::layer::SubscriberExt;
 
 #[derive(Template)]
 #[template(path = "posts.html")]
@@ -82,11 +86,18 @@ async fn index(State(state): State<Arc<Vec<Post>>>) -> impl IntoResponse {
 
 #[tokio::main]
 async fn main() {
+
+    let fmt_layer = Layer::default().with_span_events(FmtSpan::CLOSE);
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .init();
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect("postgres://myuser:mypass@localhost/mydb")
         .await
         .expect("couldn't connect to the database");
+
     let mut posts =
         sqlx::query_as::<_, Post>("select post_title, post_date, post_body from myposts")
             .fetch_all(&pool)
@@ -105,6 +116,7 @@ async fn main() {
         .with_state(shared_state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    info!("{:<12} - {:?}", "LISTENING", listener.local_addr());
     axum::serve(listener, app).await.unwrap();
 }
 
