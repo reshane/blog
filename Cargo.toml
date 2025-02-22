@@ -11,6 +11,10 @@ path = "src/main.rs"
 name = "ingest"
 path = "bin/ingest.rs"
 
+[[bin]]
+name = "bootstrap"
+path = "bin/bootstrap.rs"
+
 [dependencies]
 askama = { version = "0.12.1", features = ["markdown"] }
 tokio = { version = "1.28.0", features = ["macros", "rt-multi-thread"] }

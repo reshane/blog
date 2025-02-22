@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block recipe %}
+	<div class="dish_name">
+		{{ dish_name }}
+	</div>
+    <div class="ingredients">
+        {% for item in ingredients %}
+            <li>{{ item|rmdashes }}</li>
+        {% endfor %}
+    </div>
+	<div class="instructions">
+		{{ instructions|markdown }}
+	</div>
+{% endblock recipe %}

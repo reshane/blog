@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>{{ post_title }}</title>
+		<title>{{ title }}</title>
 		<!-- we'll use Tower middlewar middleware to serve this static content soon-->
 		<link href="/assets/post.css rel="stylesheet" type="text/css">
 	</head>
@@ -11,5 +11,9 @@
 		{% block post %}
 		{% endblock post %}
 		</div>
+        <div id="Recipe">
+        {% block recipe %}
+        {% endblock recipe %}
+        </div>
 	</body>
 </html>
