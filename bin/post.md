@@ -8,3 +8,7 @@ fn main() {
     println!("Shane was here");
 }
 ```
+![house.png](/assets/house.png)
+
+[![video](/assets/face.png)](/assets/video.webm)
+

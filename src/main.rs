@@ -6,6 +6,7 @@ use axum::{
     routing::get,
     Router,
 };
+use tower_http::services::ServeDir;
 use sqlx::{postgres::PgPool, postgres::PgPoolOptions, types::time::Date, FromRow};
 use std::sync::Arc;
 use tracing::info;
@@ -202,6 +203,7 @@ async fn main() {
     let shared_state = Arc::new(pool);
 
     let app = Router::new()
+        .nest_service("/assets/", ServeDir::new("./assets"))
         .route("/", get(index))
         .route("/post/{query_title}", get(post))
         .route("/recipe/{id}", get(get_recipe))
