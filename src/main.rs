@@ -7,87 +7,25 @@ use axum::{
     Router,
 };
 use tower_http::services::ServeDir;
-use sqlx::{postgres::PgPool, postgres::PgPoolOptions, types::time::Date, FromRow};
+use sqlx::{postgres::PgPool, postgres::PgPoolOptions};
 use std::sync::Arc;
 use tracing::info;
 use tracing_subscriber::fmt::{format::FmtSpan, Layer};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::prelude::*;
 
-#[derive(Template)]
-#[template(path = "posts.html")]
-pub struct PostTemplate<'a> {
-    pub title: &'a str,
-    pub post_date: String,
-    pub post_body: &'a str,
-}
+mod recipe;
+mod post;
+mod filters;
 
-#[derive(FromRow, Debug, Clone)]
-pub struct Post {
-    pub id: i32,
-    pub title: String,
-    pub publish_date: Date,
-    pub body: String,
-}
-
-#[derive(FromRow, Debug, Clone)]
-pub struct RecipeRow {
-    pub id: i32,
-    pub dish_name: String,
-    pub instructions: String,
-}
-
-pub struct Recipe {
-    pub dish_name: String,
-    pub instructions: String,
-    pub ingredients: Vec<String>,
-}
-
-#[derive(FromRow, Debug, Clone)]
-pub struct Ingredient {
-    pub name: String,
-}
-
-#[derive(Template)]
-#[template(path = "recipes.html")]
-pub struct RecipeTemplate<'a> {
-    pub title: &'a str,
-    pub dish_name: &'a str,
-    pub instructions: &'a str,
-    pub ingredients: Vec<String>,
-}
+use recipe::{RecipeRow, Recipe, RecipeTemplate};
+use post::{Post, PostTemplate};
 
 async fn get_recipe(Path(dish_name): Path<String>, State(state): State<Arc<PgPool>>) -> impl IntoResponse {
 
     let pool = state.clone();
 
-    let recipe_rows = sqlx::query_as::<_, RecipeRow>(
-        "select id, dish_name, instructions from recipe where dish_name = ($1)",
-    )
-    .bind(dish_name.replace("-", " "))
-    .fetch_all(&*pool)
-    .await
-    .unwrap();
-
-    let recipe_row = recipe_rows[0].clone();
-    let recipe_id = recipe_row.id;
-
-    let ingredients = sqlx::query_as::<_, Ingredient>(
-        "select name from ingredient left join recipe_ingredient on ingredient.id = recipe_ingredient.ingredient_id where recipe_ingredient.recipe_id = ($1)"
-    )
-    .bind(recipe_id)
-    .fetch_all(&*pool)
-    .await
-    .unwrap();
-
-    let recipe = Recipe {
-        dish_name: recipe_row.dish_name,
-        instructions: recipe_row.instructions,
-        ingredients: ingredients
-            .iter()
-            .map(|i| i.name.clone())
-            .collect::<Vec<String>>(),
-    };
+    let recipe = Recipe::get_by_name(dish_name, pool).await;
 
     let template = Some(RecipeTemplate {
         title: &recipe.dish_name,
@@ -109,18 +47,8 @@ async fn post(
     Path(query_title): Path<String>,
     State(state): State<Arc<PgPool>>,
 ) -> impl IntoResponse {
-    let pool = state.clone();
-    let posts =
-        sqlx::query_as::<_, Post>("select id, title, publish_date, body from post where title = ($1)")
-            .bind(&(query_title.replace("-", " ")))
-            .fetch_all(&*pool)
-            .await
-            .unwrap();
 
-    let post = match posts.len() {
-        0 => None,
-        _ => Some(posts[0].clone()),
-    };
+    let post = Post::get_by_title(query_title, state).await;
 
     match post {
         Some(post) => {
@@ -214,8 +142,3 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-mod filters {
-    pub fn rmdashes(title: &str) -> askama::Result<String> {
-        Ok(title.replace("-", " ").into())
-    }
-}
