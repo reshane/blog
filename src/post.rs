@@ -13,8 +13,6 @@ pub struct PostTemplate<'a> {
 
 #[derive(FromRow, Debug, Clone)]
 pub struct Post {
-    #[allow(unused)]
-    pub id: i32,
     pub title: String,
     pub publish_date: Date,
     pub body: String,
@@ -22,13 +20,14 @@ pub struct Post {
 
 impl Post {
     pub async fn get_by_title(query_title: String, pool: Arc<PgPool>) -> Option<Self> {
-        let pool = (*pool).clone();
+        let pool = pool.clone();
         let posts =
-        sqlx::query_as::<_, Post>("select id, title, publish_date, body from post where title = ($1)")
+        sqlx::query_as::<_, Post>("select title, publish_date, body from post where title = ($1)")
             .bind(&(query_title.replace("-", " ")))
-            .fetch_all(&pool)
+            .fetch_all(&*pool)
             .await
             .unwrap();
+
         match posts.len() {
             0 => None,
             _ => Some(posts[0].clone()),

@@ -4,6 +4,8 @@ use crate::filters;
 use sqlx::{postgres::PgPool, FromRow};
 use std::sync::Arc;
 
+use crate::db;
+
 #[derive(FromRow, Debug, Clone)]
 pub struct RecipeRow {
     pub id: i32,
