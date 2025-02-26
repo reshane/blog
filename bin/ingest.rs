@@ -2,7 +2,7 @@ use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
-    let post_contents = 
+    let post_contents =
         std::fs::read_to_string("./bin/post.md").expect("File must exist and be accessible");
     let recipe_contents =
         std::fs::read_to_string("./bin/recipe.md").expect("File must exist and be accessible");
@@ -15,10 +15,10 @@ async fn main() -> Result<(), sqlx::Error> {
 
     let (_post_id,): (i32,) =
         sqlx::query_as("insert into post (title, body) values ($1, $2) returning id")
-        .bind("First Post")
-        .bind(post_contents)
-        .fetch_one(&pool)
-        .await?;
+            .bind("First Post")
+            .bind(post_contents)
+            .fetch_one(&pool)
+            .await?;
 
     let (recipe_id,): (i32,) =
         sqlx::query_as("insert into recipe (dish_name, instructions) values ($1, $2) returning id")

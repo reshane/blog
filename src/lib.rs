@@ -1,25 +1,30 @@
 use askama::Template;
 use axum::{
-    extract::{Path, State}, http::StatusCode, response::{Html, IntoResponse}, routing::get, Router
+    extract::{Path, State},
+    http::StatusCode,
+    response::{Html, IntoResponse},
+    routing::get,
+    Router,
 };
-use tracing::info;
-use tower_http::services::ServeDir;
 use sqlx::postgres::PgPool;
 use std::sync::Arc;
 use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
+use tracing::info;
 
 mod error;
-mod web;
-mod recipe;
-mod post;
 mod filters;
-mod db;
+mod post;
+mod recipe;
+mod web;
 
-use recipe::{RecipeRow, Recipe, RecipeTemplate};
 use post::{Post, PostTemplate};
+use recipe::{Recipe, RecipeRow, RecipeTemplate};
 
-async fn get_recipe(Path(dish_name): Path<String>, State(state): State<Arc<PgPool>>) -> impl IntoResponse {
-
+async fn get_recipe(
+    Path(dish_name): Path<String>,
+    State(state): State<Arc<PgPool>>,
+) -> impl IntoResponse {
     let pool = state.clone();
 
     let recipe = Recipe::get_by_name(dish_name, pool).await;
@@ -44,7 +49,6 @@ async fn post(
     Path(query_title): Path<String>,
     State(state): State<Arc<PgPool>>,
 ) -> impl IntoResponse {
-
     let post = Post::get_by_title(query_title, state).await;
 
     match post {
@@ -53,12 +57,13 @@ async fn post(
                 title: &post.title,
                 post_date: post.publish_date.to_string(),
                 post_body: &post.body,
-            }.render();
+            }
+            .render();
             match template {
                 Ok(html) => Html(html).into_response(),
                 Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Server Error").into_response(),
             }
-        },
+        }
         None => (StatusCode::NOT_FOUND, "404 not found").into_response(),
     }
 }
@@ -73,29 +78,28 @@ pub struct IndexTemplate<'a> {
 
 async fn index(State(state): State<Arc<PgPool>>) -> impl IntoResponse {
     let pool = state.clone();
-    let mut posts =
-        sqlx::query_as::<_, Post>("select id, title, publish_date, body from post")
-            .fetch_all(&*pool)
-            .await
-            .unwrap();
+    let mut posts = sqlx::query_as::<_, Post>("select id, title, publish_date, body from post")
+        .fetch_all(&*pool)
+        .await
+        .unwrap();
 
     let rlinks = sqlx::query_as::<_, RecipeRow>("select id, dish_name, instructions from recipe")
         .fetch_all(&*pool)
         .await
         .unwrap()
         .iter()
-        .map(|r| format!("{}", r.dish_name.replace(" ", "-")))
+        .map(|r| r.dish_name.replace(" ", "-").to_string())
         .collect::<Vec<String>>();
 
-    for i in 0..posts.len() {
-        posts[i].title = posts[i].title.replace(" ", "-");
+    for post in &mut posts {
+        post.title = post.title.replace(" ", "-");
     }
 
     let s = posts;
     let mut plinks: Vec<String> = Vec::new();
 
-    for i in 0..s.len() {
-        plinks.push(s[i].title.clone());
+    for item in &s {
+        plinks.push(item.title.clone());
     }
 
     let template = IndexTemplate {
@@ -115,8 +119,7 @@ async fn index(State(state): State<Arc<PgPool>>) -> impl IntoResponse {
 }
 
 fn routes_static() -> Router {
-    Router::new()
-        .nest_service("/assets/", ServeDir::new("./assets"))
+    Router::new().nest_service("/assets/", ServeDir::new("./assets"))
 }
 
 fn routes_data(pool: PgPool) -> Router {
@@ -130,7 +133,6 @@ fn routes_data(pool: PgPool) -> Router {
 }
 
 pub async fn run(listener: TcpListener, shared_state: PgPool) {
-
     let app = Router::new()
         .merge(routes_data(shared_state))
         .merge(web::routes_login::routes())
@@ -139,4 +141,3 @@ pub async fn run(listener: TcpListener, shared_state: PgPool) {
     info!("--> {:<12} - {:?}", "LISTENING", listener.local_addr());
     axum::serve(listener, app).await.unwrap();
 }
-

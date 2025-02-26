@@ -1,8 +1,8 @@
 use crate::error::{Error, Result};
 use axum::{routing::post, Json, Router};
-use tracing::info;
 use serde::Deserialize;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
+use tracing::info;
 
 pub fn routes() -> Router {
     Router::new().route("/api/login", post(api_login))

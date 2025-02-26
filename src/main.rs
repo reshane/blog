@@ -1,13 +1,11 @@
-
 use blog::run;
+use sqlx::postgres::PgPoolOptions;
 use std::env;
 use tokio::net::TcpListener;
-use sqlx::postgres::PgPoolOptions;
 use tracing_subscriber::{layer::*, util::*};
 
 #[tokio::main]
 async fn main() {
-
     // app config
     let port = env::var("PORT").unwrap_or_else(|_| String::from("8080"));
     let address = format!("0.0.0.0:{port}");
@@ -41,4 +39,3 @@ async fn main() {
     // start the server
     run(listener, pool).await
 }
-

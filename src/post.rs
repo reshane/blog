@@ -1,4 +1,3 @@
-
 use askama::Template;
 use sqlx::{postgres::PgPool, types::time::Date, FromRow};
 use std::sync::Arc;
@@ -21,12 +20,13 @@ pub struct Post {
 impl Post {
     pub async fn get_by_title(query_title: String, pool: Arc<PgPool>) -> Option<Self> {
         let pool = pool.clone();
-        let posts =
-        sqlx::query_as::<_, Post>("select title, publish_date, body from post where title = ($1)")
-            .bind(&(query_title.replace("-", " ")))
-            .fetch_all(&*pool)
-            .await
-            .unwrap();
+        let posts = sqlx::query_as::<_, Post>(
+            "select title, publish_date, body from post where title = ($1)",
+        )
+        .bind(query_title.replace("-", " "))
+        .fetch_all(&*pool)
+        .await
+        .unwrap();
 
         match posts.len() {
             0 => None,

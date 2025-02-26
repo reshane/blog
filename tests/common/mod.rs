@@ -1,6 +1,6 @@
+use sqlx::postgres::PgPoolOptions;
 use std::sync::Once;
 use tokio::net::TcpListener;
-use sqlx::postgres::PgPoolOptions;
 use tracing::info;
 
 static INIT: Once = Once::new();

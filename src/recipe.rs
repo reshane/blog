@@ -1,10 +1,7 @@
-
-use askama::Template;
 use crate::filters;
+use askama::Template;
 use sqlx::{postgres::PgPool, FromRow};
 use std::sync::Arc;
-
-use crate::db;
 
 #[derive(FromRow, Debug, Clone)]
 pub struct RecipeRow {
