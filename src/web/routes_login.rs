@@ -1,5 +1,6 @@
 use crate::error::{Error, Result};
 use axum::{routing::post, Json, Router};
+use tracing::info;
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -8,7 +9,7 @@ pub fn routes() -> Router {
 }
 
 async fn api_login(payload: Json<LoginPayload>) -> Result<Json<Value>> {
-    println!("->> {:12} - api_login", "HANDLER");
+    info!("->> {:12} - api_login", "HANDLER");
     // TODO: Implement real db/auth logic
     if payload.username != "demo1" || payload.pwd != "welcome" {
         return Err(Error::LoginFailure);

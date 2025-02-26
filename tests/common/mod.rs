@@ -1,16 +1,21 @@
-use tokio::runtime::Runtime;
-use std::thread;
+use std::sync::Once;
+use tokio::net::TcpListener;
+use sqlx::postgres::PgPoolOptions;
+use tracing::info;
 
+static INIT: Once = Once::new();
 
 pub async fn setup() {
-    use blog::run;
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
-    let _ = thread::spawn(move || {
-        let runtime = Runtime::new().expect("Unable to create tokio runtime");
-        println!("--> starting server for tests");
-        runtime.block_on(async {
-            run(listener).await;
-        });
+    let listener = TcpListener::bind("0.0.0.0:8080")
+        .await
+        .expect("Failed to bind to port 8080");
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect("postgres://myuser:mypass@localhost/mydb")
+        .await
+        .expect("couldn't connect to the database");
+    INIT.call_once(move || {
+        tokio::spawn(blog::run(listener, pool));
+        info!("--> finished setup");
     });
-    println!("--> finished setup");
 }

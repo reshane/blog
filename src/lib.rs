@@ -1,15 +1,11 @@
 use askama::Template;
 use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    response::{Html, IntoResponse},
-    routing::get,
-    Router,
+    extract::{Path, State}, http::StatusCode, response::{Html, IntoResponse}, routing::get, Router
 };
+use tracing::info;
 use tower_http::services::ServeDir;
-use sqlx::{postgres::PgPool, postgres::PgPoolOptions};
+use sqlx::postgres::PgPool;
 use std::sync::Arc;
-use tracing_subscriber::EnvFilter;
 use tokio::net::TcpListener;
 
 mod error;
@@ -123,13 +119,7 @@ fn routes_static() -> Router {
         .nest_service("/assets/", ServeDir::new("./assets"))
 }
 
-async fn routes_data() -> Router {
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect("postgres://myuser:mypass@localhost/mydb")
-        .await
-        .expect("couldn't connect to the database");
-
+fn routes_data(pool: PgPool) -> Router {
     let shared_state = Arc::new(pool);
 
     Router::new()
@@ -139,19 +129,14 @@ async fn routes_data() -> Router {
         .with_state(shared_state)
 }
 
-pub async fn run(listener: TcpListener) {
-    tracing_subscriber::fmt()
-        .without_time()
-        .with_target(false)
-        .with_env_filter(EnvFilter::from_default_env())
-        .init();
+pub async fn run(listener: TcpListener, shared_state: PgPool) {
 
     let app = Router::new()
-        .merge(routes_data().await)
+        .merge(routes_data(shared_state))
         .merge(web::routes_login::routes())
         .fallback_service(routes_static());
 
-    println!("--> {:<12} - {:?}", "LISTENING", listener.local_addr());
+    info!("--> {:<12} - {:?}", "LISTENING", listener.local_addr());
     axum::serve(listener, app).await.unwrap();
 }
 
