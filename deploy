@@ -1,0 +1,14 @@
+#! /bin/bash
+
+set -e
+
+./build_docker
+
+sudo docker save -o blog.tar blog
+
+sudo scp -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -i ${PRIVATE_KEY} blog.tar ${DEPLOY_INSTANCE}
+sudo scp -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -i ${PRIVATE_KEY} run_docker ${DEPLOY_INSTANCE}
+
+ssh -i ${PRIVATE_KEY} ${DEPLOY_INSTANCE} "sudo docker rm -f blog; sudo docker load -i ./blog.tar; ./run_docker; sudo rm -f ./blog.tar"
+
+sudo rm -f blog.tar

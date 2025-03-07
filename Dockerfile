@@ -35,8 +35,7 @@ RUN adduser \
 
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
-FROM ubuntu:20.04
-RUN apt-get update -y
+FROM scratch
 
 COPY --from=rs-build /etc/passwd /etc/passwd
 COPY --from=rs-build /etc/group /etc/group
@@ -49,5 +48,6 @@ COPY --from=rs-build --chown=blog:blog ./assets /usr/local/bin/assets
 EXPOSE 8080
 
 WORKDIR /usr/local/bin
+
 CMD ["blog"]
 
