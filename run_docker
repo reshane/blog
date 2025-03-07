@@ -1,0 +1,8 @@
+#! /bin/bash
+set -e
+
+sudo docker run -it \
+    -e DB_HOST=${DB_HOST} -e DB_USER=${DB_USER} -e DB_PASS=${DB_PASS} \
+    -p 80:8080 -p 8080:8080 \
+    --name blog -d blog
+

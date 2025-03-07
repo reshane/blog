@@ -22,13 +22,6 @@ async fn main() {
         env::set_var("RUST_LOG", "debug");
     }
 
-    /*
-    tracing_subscriber::fmt()
-        .without_time()
-        .with_target(false)
-        .with_env_filter(EnvFilter::from_default_env())
-        .init();*/
-
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
         .with(tracing_subscriber::fmt::Layer::default().compact())
