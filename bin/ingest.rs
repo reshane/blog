@@ -7,9 +7,16 @@ async fn main() -> Result<(), sqlx::Error> {
     let recipe_contents =
         std::fs::read_to_string("./bin/recipe.md").expect("File must exist and be accessible");
 
+    let db_host = std::env::var("DB_HOST").expect("DB_HOST env var required but not found");
+    let db_user = std::env::var("DB_USER").expect("DB_USER env var required but not found");
+    let db_pass = std::env::var("DB_PASS").expect("DB_PASS env var required but not found");
     let pool = PgPoolOptions::new()
         .max_connections(3)
-        .connect("postgres://myuser:mypass@localhost/mydb")
+        .connect(
+            format!(
+                "postgres://{}:{}@{}/mydb", db_user, db_pass, db_host
+            ).as_str()
+        )
         .await
         .expect("Could not create db connection pool");
 

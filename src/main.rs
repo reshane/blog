@@ -4,10 +4,14 @@ use std::env;
 use tokio::net::TcpListener;
 use tracing_subscriber::{layer::*, util::*};
 
+mod config;
+use config::Configuration;
+
 #[tokio::main]
 async fn main() {
     // app config
-    let port = env::var("PORT").unwrap_or_else(|_| String::from("8080"));
+    let config = Configuration::from_env().expect("Could not get config from env");
+    let port = config.port;
     let address = format!("0.0.0.0:{port}");
     let listener = TcpListener::bind(address)
         .await
@@ -32,7 +36,13 @@ async fn main() {
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://myuser:mypass@localhost/mydb")
+        .connect(
+            format!(
+                "postgres://{}:{}@{}/mydb",
+                config.db.user, config.db.pass, config.db.host
+            )
+            .as_str(),
+        )
         .await
         .expect("couldn't connect to the database");
 
