@@ -1,7 +1,0 @@
-# Cargo config file
-
-# Environment variables set for all `cargo ...` commands.
-[env]
-
-# Scope down tracing, to filter out external lib tracing
-RUST_LOG="blog=debug"

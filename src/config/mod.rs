@@ -10,6 +10,15 @@ pub struct DbConfig {
     pub pass: String,
 }
 
+impl DbConfig {
+    pub fn get_connection_string(&self) -> String {
+        format!(
+            "postgres://{}:{}@{}/mydb",
+            self.user, self.pass, self.host
+        )
+    }
+}
+
 #[derive(Debug)]
 pub struct Configuration {
     pub port: String,

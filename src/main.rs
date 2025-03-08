@@ -3,9 +3,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::env;
 use tokio::net::TcpListener;
 use tracing_subscriber::{layer::*, util::*};
-
-mod config;
-use config::Configuration;
+use blog::config::Configuration;
 
 #[tokio::main]
 async fn main() {
@@ -29,13 +27,7 @@ async fn main() {
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect(
-            format!(
-                "postgres://{}:{}@{}/mydb",
-                config.db.user, config.db.pass, config.db.host
-            )
-            .as_str(),
-        )
+        .connect(config.db.get_connection_string().as_str())
         .await
         .expect("couldn't connect to the database");
 

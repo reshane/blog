@@ -1,0 +1,12 @@
+# Cargo config file
+
+# Environment variables set for all `cargo ...` commands.
+[env]
+# Service port config
+PORT = { value = "8080", force = true }
+# Local test db credentials
+DB_USER = { value = "myuser", force = true }
+DB_PASS = { value = "mypass", force = true }
+DB_HOST = { value = "localhost", force = true }
+# Scope down tracing, to filter out external lib tracing
+RUST_LOG = { value = "blog=debug", force = true }

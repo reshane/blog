@@ -17,6 +17,7 @@ mod filters;
 mod post;
 mod recipe;
 mod web;
+pub mod config;
 
 use post::{Post, PostTemplate};
 use recipe::{Recipe, RecipeRow, RecipeTemplate};
@@ -138,6 +139,6 @@ pub async fn run(listener: TcpListener, shared_state: PgPool) {
         .merge(web::routes_login::routes())
         .fallback_service(routes_static());
 
-    info!("--> {:<12} - {:?}", "LISTENING", listener.local_addr());
+    info!("{:<12} - {:?}", "LISTENING", listener.local_addr());
     axum::serve(listener, app).await.unwrap();
 }
