@@ -13,6 +13,10 @@ name = "ingest"
 path = "bin/ingest.rs"
 
 [[bin]]
+name = "new_post"
+path = "bin/new_post.rs"
+
+[[bin]]
 name = "bootstrap"
 path = "bin/bootstrap.rs"
 

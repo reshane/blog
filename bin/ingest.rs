@@ -1,4 +1,5 @@
 use sqlx::postgres::PgPoolOptions;
+use blog::config::Configuration;
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -7,16 +8,10 @@ async fn main() -> Result<(), sqlx::Error> {
     let recipe_contents =
         std::fs::read_to_string("./bin/recipe.md").expect("File must exist and be accessible");
 
-    let db_host = std::env::var("DB_HOST").expect("DB_HOST env var required but not found");
-    let db_user = std::env::var("DB_USER").expect("DB_USER env var required but not found");
-    let db_pass = std::env::var("DB_PASS").expect("DB_PASS env var required but not found");
+    let config = Configuration::from_env().expect("Could not get config from env");
     let pool = PgPoolOptions::new()
         .max_connections(3)
-        .connect(
-            format!(
-                "postgres://{}:{}@{}/mydb", db_user, db_pass, db_host
-            ).as_str()
-        )
+        .connect(config.db.get_connection_string().as_str())
         .await
         .expect("Could not create db connection pool");
 
